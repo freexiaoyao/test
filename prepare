@@ -1,4 +1,3 @@
-1.自我介绍
 我叫陈琨，2010年从中科大电子工程与信息科学系毕业。之后进入上海盈方微电子工作，这是一家芯片设计公司，我在其中的方案设计部工作，
 主要从事Android系统的Application Framework以及App的开发，做过Music，FM等APP，对MountService，Android 启动等较为了解；
 现在在上海剑桥科技工作，这是一家网络设备生产制造商，我进入的是智能家庭部，做过基于Android和openwrt的智能路由以及家庭网关项目。
@@ -10,3 +9,27 @@ Last year, I left InfoTM to CIG, also worked as a software developer.I participa
 In the mean time, I build my own website and participate a Github project called koolshare which develop pugin for Merlin router firmware.
 
 
+Android Mount系统：
+Mount系统以MountService以及Vold为中心。Vold由init通过解析init.rc启动，是一个守护进程，在后台运行，其核心是建立两个soket来监听内核以及
+MountService的消息、命令，并对这些消息进行响应。MountService由SystemServer启动，是Mount系统的逻辑处理中心，它接收来自Vold的消息，下发Mount
+的命令，也维护系统Mount的状态。
+举例说下SD卡mount的过程，插卡产生中断，由驱动处理后上报uevent事件，被Vold监听到后通过setstate接口，使用soket将状态上报给MountService，然后
+MountService下达mount命令，vold通过VolumeManager轮询各个Volume进行匹配挂载。同时将状态改变上报给MountService，MountService通过广播将mount状态
+发送到整个系统，同时在状态变为mounted时会出发mediascanner对媒体文件进行扫描，更新媒体数据库。
+
+
+Android启动流程：
+boot拷贝解压linux内核，在内核完成驱动加载后会运行第一个程序：init。init解析init.rc文件启动许多本地服务，如vold，rild等，其中最重要的是zygote
+以及service manager，zygote后续会孵化出systemserver，systemserver中启动众多Android Service,并完成向service manager的注册，从而使得Android应用
+能够轻松访问各个service。而所有的Android APK均是由ActivityManagerService向zygote发送请求从而孵化出，其中也包括了Laucher。
+
+
+Android编译系统：
+集中在build目录。
+如何增加一个产品，在device目录下添加产品目录，新建AndroidProducts.mk，以及其中定义的真正的mk
+在系统中添加APK，exec, jar等，重点是Android.mk的书写，LOCAL_PATH，LOCAL_MODULE, BUILD_XXX
+
+
+Android NDK:
+使用，在apk目录下新建jni目录，然后书写.c或.c++，并创建Android.mk，使用ndk-build使其编译成so，java中可以通过System.loadLibrary("")加载so，并通过
+native申明函数为本地方法，从而实现java与c的沟通。c通过CallXXXMethod调用java方法。
